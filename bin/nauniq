@@ -188,7 +188,8 @@ file like this:
  foo
  baz
 
-and you want unique lines for each day.
+and you want unique lines for each day (in which you'll specify
+C<--forget-pattern '^\*'>).
 
 =item * --ignore-case, -i
 
