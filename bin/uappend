@@ -1,0 +1,208 @@
+#!/usr/bin/perl
+
+use 5.010001;
+use strict;
+use warnings;
+
+use Getopt::Long;
+
+# VERSION
+
+my %Opts = (
+    check_chars    => -1,
+    forget_pattern => undef,
+    ignore_case    => 0,
+    md5            => 0,
+    num_entries    => -1,
+    show_unique    => 1,
+    show_repeated  => 0,
+    skip_chars     => 0,
+);
+
+sub parse_cmdline {
+    my $res = GetOptions(
+        'repeated|d'       =>
+            sub { $Opts{show_unique} = 0; $Opts{show_repeated} = 1 },
+        'ignore-case|i'    => \$Opts{ignore_case},
+        'num-entries|n=i'  => \$Opts{num_entries},
+        'skip-chars|s=i'   => \$Opts{skip_chars},
+        'unique|u'         =>
+            sub { $Opts{show_unique} = 1; $Opts{show_repeated} = 0 },
+        'check-chars|w=i'  => \$Opts{check_chars},
+        'md5'              => \$Opts{md5},
+        'forget-pattern=s' => sub {
+            my ($cbobj, $val) = @_;
+            eval { $val = $Opts{ignore_case} ? qr/$val/i : qr/$val/ };
+            if ($@) { die "Invalid regex pattern in --forget-pattern: $@\n" }
+            $Opts{forget_pattern} = $val;
+        },
+        'help|h'          => sub {
+            print <<USAGE;
+Usage:
+  $0 [OPTIONS]... FILE
+  $0 --help
+Options:
+  --repeated, -d
+  --ignore-case, -i
+  --num-entries=N, -n
+  --skip-chars=N, -s
+  --unique, -u
+  --check-chars=N, -w
+  --md5
+  --forget-pattern=S
+For more details, see the manpage/documentation.
+USAGE
+            exit 0;
+        },
+    );
+    exit 99 if !$res;
+}
+
+sub run {
+    @ARGV or die "Please specify filename\n";
+
+    my $ifh = *STDIN;
+
+    my $fname = shift @ARGV;
+    open my($ofh), "+>>", $fname or die "Can't open file $fname: $!\n";
+    seek $ofh, 0, 0;
+
+    my ($line, $memkey);
+    my %mem;
+    my $sub_reset_mem = sub {
+        if ($Opts{num_entries} > 0) {
+            require Tie::Cache;
+            tie %mem, 'Tie::Cache', $Opts{num_entries};
+        } else {
+            %mem = ();
+        }
+    };
+    $sub_reset_mem->();
+    require Digest::MD5 if $Opts{md5};
+    no warnings; # we want to shut up 'substr outside of string'
+    my $phase = 1; # phase 1 is reading ofh, phase 2 is reading ifh
+    while (1) {
+        if ($phase == 1) {
+            $line = <$ofh> or do { $phase = 2; next };
+        } else {
+            $line = <$ifh> or last;
+        }
+
+        if ($Opts{forget_pattern} && $line =~ $Opts{forget_pattern}) {
+            $sub_reset_mem->();
+        }
+
+        $memkey = $Opts{check_chars} > 0 ?
+            substr($line, $Opts{skip_chars}, $Opts{check_chars}) :
+                substr($line, $Opts{skip_chars});
+        $memkey = lc($memkey) if $Opts{ignore_case};
+        $memkey = Digest::MD5::md5($memkey) if $Opts{md5};
+
+        if ($phase == 2) {
+            if ($mem{$memkey}) {
+                print $ofh $line if $Opts{show_repeated};
+            } else {
+                print $ofh $line if $Opts{show_unique};
+            }
+        }
+
+        $mem{$memkey} = 1;
+    }
+}
+
+# MAIN
+
+parse_cmdline();
+run();
+
+1;
+# ABSTRACT: Append lines to file only if they do not exist yet
+# PODNAME: uappend
+
+=head1 SYNOPSIS
+
+ uappend [OPTION]... [FILE]
+
+
+=head1 DESCRIPTION
+
+This is a convenient script that accompanies C<nauniq>. This:
+
+ blah | uappend FILE
+
+is equivalent to:
+
+ mv FILE FILE.tmp && ( blah | uniq > FILE )
+
+
+=head1 OPTIONS
+
+=over
+
+=item * --repeated, -d
+
+Print only duplicate lines. The opposite of C<--unique>.
+
+=item * --num-entries=N, -n
+
+Number of unique entries to remember. The default is -1 (unlimited). This option
+is to control memory usage, but the consequence is that lines that are too far
+apart will be forgotten.
+
+=item * --skip-chars=N, -s
+
+Number of characters from the beginning of line to skip when checking
+uniqueness.
+
+=item * --unique, -u
+
+Print only unique lines. This is the default. The opposite of C<--repeated>.
+
+=item * --check-chars=N, -w
+
+The amount of characters to check for uniqueness. The default is -1 (check all
+characters in a line).
+
+=item * --md5
+
+Remember the MD5 hash instead of the actual characters of the line. Might be
+useful to reduce memory usage if the lines are long.
+
+=item * --forget-pattern=S
+
+This is an alternative to C<--num-entries>. Instead of instructing C<nauniq> to
+remember only a fixed number of entries, you can specify a regex pattern to
+trigger the forgetting the lines. An example use-case of this is when you have a
+file like this:
+
+ * entries for 2014-03-13
+ foo
+ bar
+ baz
+ * entries for 2014-03-14
+ foo
+ baz
+
+and you want unique lines for each day.
+
+=item * --ignore-case, -i
+
+Ignore case.
+
+=back
+
+
+=head1 EXIT CODES
+
+0 on success.
+
+1 on I/O error.
+
+99 on command-line options error.
+
+
+=head1 SEE ALSO
+
+L<nauniq>
+
+=cut
