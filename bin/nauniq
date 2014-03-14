@@ -222,6 +222,8 @@ Using Tie::Cache's MaxBytes option.
 
 =item * Debugging option: print whenever forget pattern matches
 
+=item * Refactor: merge duplicate stuffs between nauniq & uappend
+
 =back
 
 
