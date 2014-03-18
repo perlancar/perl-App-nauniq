@@ -26,7 +26,7 @@ sub parse_cmdline {
         'repeated|d'       =>
             sub { $Opts{show_unique} = 0; $Opts{show_repeated} = 1 },
         'ignore-case|i'    => \$Opts{ignore_case},
-        'num-entries|n=i'  => \$Opts{num_entries},
+        'num-entries=i'    => \$Opts{num_entries},
         'skip-chars|s=i'   => \$Opts{skip_chars},
         'unique|u'         =>
             sub { $Opts{show_unique} = 1; $Opts{show_repeated} = 0 },
@@ -186,7 +186,7 @@ Print only duplicate lines. The opposite of C<--unique>.
 
 Ignore case.
 
-=item * --num-entries=N, -n
+=item * --num-entries=N
 
 Number of unique entries to remember. The default is -1 (unlimited). This option
 is to control memory usage, but the consequence is that lines that are too far
