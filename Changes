@@ -1,5 +1,18 @@
 Revision history for App-nauniq
 
+0.02    2014-03-18 (SHARYANTO)
+
+        [REMOVED FEATURES]
+
+        - Remove 'uappend' program. I prefer a single program, and this also
+          removes duplicated code between 'uappend' and 'nauniq'.
+
+        [NEW FEATURES]
+
+        - Add --append, --read-ouput, -a options to replace the 'uappend'
+          functionality.
+
+
 0.01    2014-03-14 (SHARYANTO)
 
         - First release, no tests yet.
