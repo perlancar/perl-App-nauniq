@@ -292,6 +292,4 @@ Using Tie::Cache's MaxBytes option.
 
 L<uniq>
 
-L<uappend>
-
 =cut
