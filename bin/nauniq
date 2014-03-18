@@ -9,11 +9,13 @@ use Getopt::Long;
 # VERSION
 
 my %Opts = (
+    append         => 0,
     check_chars    => -1,
     forget_pattern => undef,
     ignore_case    => 0,
     md5            => 0,
     num_entries    => -1,
+    read_output    => 0,
     show_unique    => 1,
     show_repeated  => 0,
     skip_chars     => 0,
@@ -29,14 +31,19 @@ sub parse_cmdline {
         'unique|u'         =>
             sub { $Opts{show_unique} = 1; $Opts{show_repeated} = 0 },
         'check-chars|w=i'  => \$Opts{check_chars},
-        'md5'              => \$Opts{md5},
+        'a'                => sub {
+            $Opts{append} = 1; $Opts{read_output} = 1;
+        },
+        'append'           => \$Opts{append},
         'forget-pattern=s' => sub {
             my ($cbobj, $val) = @_;
             eval { $val = $Opts{ignore_case} ? qr/$val/i : qr/$val/ };
             if ($@) { die "Invalid regex pattern in --forget-pattern: $@\n" }
             $Opts{forget_pattern} = $val;
         },
-        'help|h'          => sub {
+        'md5'              => \$Opts{md5},
+        'read-output'      => \$Opts{read_output},
+        'help|h'           => sub {
             print <<USAGE;
 Usage:
   $0 [OPTIONS]... [INPUT [OUTPUT]]
@@ -48,6 +55,9 @@ Options:
   --skip-chars=N, -s
   --unique, -u
   --check-chars=N, -w
+  --append
+  --read-output
+  -a
   --md5
   --forget-pattern=S
 For more details, see the manpage/documentation.
@@ -71,13 +81,21 @@ sub run {
         $ifh = *STDIN;
     }
 
+    my $phase = 2;
     my $ofh; # output handle
     if (@ARGV) {
         my $fname = shift @ARGV;
         if ($fname eq '-') {
             $ofh = *STDOUT;
         } else {
-            open $ofh, ">", $fname or die "Can't open output file $fname: $!\n";
+            open $ofh,
+                ($Opts{read_output} ? "+" : "") . ($Opts{append} ? ">>" : ">"),
+                    $fname
+                or die "Can't open output file $fname: $!\n";
+            if ($Opts{read_output}) {
+                seek $ofh, 0, 0;
+                $phase = 1;
+            }
         }
     } else {
         $ofh = *STDOUT;
@@ -96,7 +114,20 @@ sub run {
     $sub_reset_mem->();
     require Digest::MD5 if $Opts{md5};
     no warnings; # we want to shut up 'substr outside of string'
-    while ($line = <$ifh>) {
+    while (1) {
+        if ($phase == 1) {
+            # phase 1 is just reading the output file
+            $line = <$ofh>;
+            if (!$line) {
+                $phase = 2;
+                next;
+            }
+        } else {
+            $line = <$ifh>;
+            if (!$line) {
+                last;
+            }
+        }
         if ($Opts{forget_pattern} && $line =~ $Opts{forget_pattern}) {
             $sub_reset_mem->();
         }
@@ -107,11 +138,14 @@ sub run {
         $memkey = lc($memkey) if $Opts{ignore_case};
         $memkey = Digest::MD5::md5($memkey) if $Opts{md5};
 
-        if ($mem{$memkey}) {
-            print $ofh $line if $Opts{show_repeated};
-        } else {
-            print $ofh $line if $Opts{show_unique};
+        if ($phase == 2) {
+            if ($mem{$memkey}) {
+                print $ofh $line if $Opts{show_repeated};
+            } else {
+                print $ofh $line if $Opts{show_unique};
+            }
         }
+
         $mem{$memkey} = 1;
     }
 }
@@ -148,6 +182,10 @@ the content) of each line.
 
 Print only duplicate lines. The opposite of C<--unique>.
 
+=item * --ignore-case, -i
+
+Ignore case.
+
 =item * --num-entries=N, -n
 
 Number of unique entries to remember. The default is -1 (unlimited). This option
@@ -168,10 +206,13 @@ Print only unique lines. This is the default. The opposite of C<--repeated>.
 The amount of characters to check for uniqueness. The default is -1 (check all
 characters in a line).
 
-=item * --md5
+=item * --append
 
-Remember the MD5 hash instead of the actual characters of the line. Might be
-useful to reduce memory usage if the lines are long.
+Open output file in append mode. See also C<-a>.
+
+=item * -a
+
+Equivalent to C<--append --read-output>.
 
 =item * --forget-pattern=S
 
@@ -191,9 +232,16 @@ file like this:
 and you want unique lines for each day (in which you'll specify
 C<--forget-pattern '^\*'>).
 
-=item * --ignore-case, -i
+=item * --md5
 
-Ignore case.
+Remember the MD5 hash instead of the actual characters of the line. Might be
+useful to reduce memory usage if the lines are long.
+
+=item * --read-output
+
+Whether to read output file first. This option works only with C<--append> and
+is usually used via C<-a> to append lines to file if they do not exist yet in
+the file.
 
 =back
 
@@ -205,6 +253,20 @@ Ignore case.
 1 on I/O error.
 
 99 on command-line options error.
+
+
+=head1 FAQ
+
+=head2 How do I append lines to a file only if they do not exist in the file?
+
+You cannot do this with C<uniq>:
+
+ % ( cat FILE ; produce-lines ) | uniq - FILE
+ % ( cat FILE ; produce-lines ) | uniq >> FILE
+
+as it will clobber the file first. But you can do this with C<nauniq>:
+
+ % produce-lines | nauniq -a - FILE
 
 
 =head1 TODO
@@ -222,8 +284,6 @@ Using Tie::Cache's MaxBytes option.
 =item * Debugging option: print memory usage at the end of run
 
 =item * Debugging option: print whenever forget pattern matches
-
-=item * Refactor: merge duplicate stuffs between nauniq & uappend
 
 =back
 
