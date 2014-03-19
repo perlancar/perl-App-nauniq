@@ -38,7 +38,9 @@ sub parse_cmdline {
         'forget-pattern=s' => sub {
             my ($cbobj, $val) = @_;
             eval { $val = $Opts{ignore_case} ? qr/$val/i : qr/$val/ };
-            if ($@) { die "Invalid regex pattern in --forget-pattern: $@\n" }
+            if ($@) {
+                warn "Invalid regex pattern in --forget-pattern: $@\n"; exit 99;
+            }
             $Opts{forget_pattern} = $val;
         },
         'md5'              => \$Opts{md5},
