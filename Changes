@@ -1,5 +1,17 @@
 Revision history for App-nauniq
 
+0.03    2014-03-19 (SHARYANTO)
+
+        [REMOVED FEATURES]
+
+        - Remove short option (-n). Aside from -a, I prefer to not adding short
+          options that are not in 'uniq'.
+
+        [INTERNAL]
+
+        - Add tests.
+
+
 0.02    2014-03-18 (SHARYANTO)
 
         [REMOVED FEATURES]
