@@ -1,5 +1,12 @@
 Revision history for App-nauniq
 
+0.04    2014-03-25 (SHARYANTO)
+
+        - No functional changes.
+
+        - Skip testing on win because run_forked() is not available [CT].
+
+
 0.03    2014-03-19 (SHARYANTO)
 
         [REMOVED FEATURES]
