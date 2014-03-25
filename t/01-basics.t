@@ -10,6 +10,13 @@ use IPC::Cmd qw(run_forked);
 use String::ShellQuote;
 use Test::More 0.98;
 
+BEGIN {
+    if ($^O =~ /win/i) {
+        plan skip_all => "run_forked() not available on Windows";
+        exit 0;
+    }
+}
+
 sub lines { join("", map {"$_\n"} @_) }
 
 my ($tmpdir) = tempdir(CLEANUP => 1);
