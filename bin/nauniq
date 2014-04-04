@@ -252,7 +252,7 @@ the file.
 
 0 on success.
 
-1 on I/O error.
+255 on I/O error.
 
 99 on command-line options error.
 
