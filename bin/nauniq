@@ -275,6 +275,8 @@ as it will clobber the file first. But you can do this with C<nauniq>:
 
 =over
 
+=item * --record-separator
+
 =item * Support more C<uniq> options
 
 --skip-fields (-f), --zero-terminated (-z).
