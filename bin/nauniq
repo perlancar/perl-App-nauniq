@@ -48,8 +48,8 @@ sub parse_cmdline {
         'help|h'           => sub {
             print <<USAGE;
 Usage:
-  $0 [OPTIONS]... [INPUT [OUTPUT]]
-  $0 --help
+  nauniq [OPTIONS]... [INPUT [OUTPUT]]
+  nauniq --help
 Options:
   --repeated, -d
   --ignore-case, -i
