@@ -159,7 +159,7 @@ run();
 
 1;
 # ABSTRACT: Non-adjacent uniq
-# PODNAME: nauniq
+# PODNAME:
 
 =head1 SYNOPSIS
 
