@@ -271,27 +271,6 @@ as it will clobber the file first. But you can do this with C<nauniq>:
  % produce-lines | nauniq -a - FILE
 
 
-=head1 TODO
-
-=over
-
-=item * --record-separator
-
-=item * Support more C<uniq> options
-
---skip-fields (-f), --zero-terminated (-z).
-
-=item * Specify memory limit?
-
-Using Tie::Cache's MaxBytes option.
-
-=item * Debugging option: print memory usage at the end of run
-
-=item * Debugging option: print whenever forget pattern matches
-
-=back
-
-
 =head1 SEE ALSO
 
 L<uniq>
