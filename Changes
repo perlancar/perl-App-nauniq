@@ -1,5 +1,13 @@
 Revision history for App-nauniq
 
+0.08    2015-07-30 (PERLANCAR)
+
+	- No functional changes.
+
+	- [doc] Add description/comparison to the simpler awk/perl
+	  incantation.
+
+
 0.07    2015-01-03 (PERLANCAR)
 
 	- No functional changes.
