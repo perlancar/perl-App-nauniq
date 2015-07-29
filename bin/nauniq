@@ -170,10 +170,15 @@ run();
 
 C<nauniq> is similar to the Unix command C<uniq> but detects repeated lines even
 if they are not adjacent. To do this, C<nauniq> must remember the lines being
-fed to it. There are options to control memory usage: option to only remember a
-certain number of unique lines, option to remember a certain number of
-characters for each line, and option to only remember the MD5 hash (instead of
-the content) of each line.
+fed to it. It's basically a glorified form of something like these:
+
+ % awk '{ if (!mem[$0]) { print; mem[$0]++ } }' INPUT
+ % perl -ne'print unless $mem{$_}++' INPUT
+
+There are options to control memory usage: option to only remember a certain
+number of unique lines, option to remember a certain number of characters for
+each line, and option to only remember the MD5 hash (instead of the content) of
+each line.
 
 
 =head1 OPTIONS
