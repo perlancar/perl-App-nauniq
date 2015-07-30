@@ -178,7 +178,7 @@ fed to it. It's basically a glorified form of something like these:
 There are options to control memory usage: option to only remember a certain
 number of unique lines, option to remember a certain number of characters for
 each line, and option to only remember the MD5 hash (instead of the content) of
-each line.
+each line. There are also other options like append, forget, and so on.
 
 
 =head1 OPTIONS
