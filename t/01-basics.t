@@ -217,7 +217,7 @@ sub test_nauniq {
         my $cmd = join(
             " ",
             map {shell_quote($_)}
-                ($^X, "$FindBin::Bin/../bin/nauniq", @progargs));
+                ($^X, "$FindBin::Bin/../script/nauniq", @progargs));
         note "cmd: $cmd";
         my $res = run_forked($cmd, \%runopts);
 
