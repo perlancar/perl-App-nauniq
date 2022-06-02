@@ -1,13 +1,16 @@
 #!perl
 
-# DATE
-# VERSION
-
 use 5.010001;
 use strict;
 use warnings;
 
+use App::nauniq;
 use Getopt::Long;
+
+# AUTHORITY
+# DATE
+# DIST
+# VERSION
 
 my %Opts = (
     append         => 0,
@@ -71,92 +74,10 @@ USAGE
     exit 99 if !$res;
 }
 
-sub run {
-    my $ifh; # input handle
-    if (@ARGV) {
-        my $fname = shift @ARGV;
-        if ($fname eq '-') {
-            $ifh = *STDIN;
-        } else {
-            open $ifh, "<", $fname or die "Can't open input file $fname: $!\n";
-        }
-    } else {
-        $ifh = *STDIN;
-    }
-
-    my $phase = 2;
-    my $ofh; # output handle
-    if (@ARGV) {
-        my $fname = shift @ARGV;
-        if ($fname eq '-') {
-            $ofh = *STDOUT;
-        } else {
-            open $ofh,
-                ($Opts{read_output} ? "+" : "") . ($Opts{append} ? ">>" : ">"),
-                    $fname
-                or die "Can't open output file $fname: $!\n";
-            if ($Opts{read_output}) {
-                seek $ofh, 0, 0;
-                $phase = 1;
-            }
-        }
-    } else {
-        $ofh = *STDOUT;
-    }
-
-    my ($line, $memkey);
-    my %mem;
-    my $sub_reset_mem = sub {
-        if ($Opts{num_entries} > 0) {
-            require Tie::Cache;
-            tie %mem, 'Tie::Cache', $Opts{num_entries};
-        } else {
-            %mem = ();
-        }
-    };
-    $sub_reset_mem->();
-    require Digest::MD5 if $Opts{md5};
-    no warnings; # we want to shut up 'substr outside of string'
-    while (1) {
-        if ($phase == 1) {
-            # phase 1 is just reading the output file
-            $line = <$ofh>;
-            if (!$line) {
-                $phase = 2;
-                next;
-            }
-        } else {
-            $line = <$ifh>;
-            if (!$line) {
-                last;
-            }
-        }
-        if ($Opts{forget_pattern} && $line =~ $Opts{forget_pattern}) {
-            $sub_reset_mem->();
-        }
-
-        $memkey = $Opts{check_chars} > 0 ?
-            substr($line, $Opts{skip_chars}, $Opts{check_chars}) :
-                substr($line, $Opts{skip_chars});
-        $memkey = lc($memkey) if $Opts{ignore_case};
-        $memkey = Digest::MD5::md5($memkey) if $Opts{md5};
-
-        if ($phase == 2) {
-            if ($mem{$memkey}) {
-                print $ofh $line if $Opts{show_repeated};
-            } else {
-                print $ofh $line if $Opts{show_unique};
-            }
-        }
-
-        $mem{$memkey} = 1;
-    }
-}
-
 # MAIN
 
 parse_cmdline();
-run();
+App::nauniq::run(%Opts);
 
 1;
 # ABSTRACT: Non-adjacent uniq
