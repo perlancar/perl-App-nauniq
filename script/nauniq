@@ -26,6 +26,7 @@ my %Opts = (
 );
 
 sub parse_cmdline {
+    Getopt::Long::Configure("gnu_getopt", "no_ignore_case");
     my $res = GetOptions(
         'repeated|d'       =>
             sub { $Opts{show_unique} = 0; $Opts{show_repeated} = 1 },
