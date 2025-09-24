@@ -54,7 +54,8 @@ sub parse_cmdline {
             print <<USAGE;
 Usage:
   nauniq [OPTIONS]... [INPUT [OUTPUT]]
-  nauniq --help
+  nauniq --help, -h
+  nauniq --version, -v
 Options:
   --repeated, -d
   --ignore-case, -i
