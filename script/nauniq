@@ -71,6 +71,10 @@ For more details, see the manpage/documentation.
 USAGE
             exit 0;
         },
+        'version|v' => sub {
+            print "nauniq version ", ($main::VERSION // 'dev'), "\n";
+            exit 0;
+        },
     );
     exit 99 if !$res;
 }
@@ -172,6 +176,14 @@ useful to reduce memory usage if the lines are long.
 Whether to read output file first. This option works only with C<--append> and
 is usually used via C<-a> to append lines to file if they do not exist yet in
 the file.
+
+=item * --help, -h
+
+Show help message then exit.
+
+=item * --version, -v
+
+Show version then exit.
 
 =back
 
